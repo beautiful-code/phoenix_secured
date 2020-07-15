@@ -29,6 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec", "~> 3.2"
 
   spec.add_dependency 'jwt'
+  spec.add_dependency 'faraday'
 
 
 end

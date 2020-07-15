@@ -11,12 +11,14 @@ require 'jwt'
 ActionController::API.class_eval do
 
   before_action :authenticate_request!
+  before_action :set_org, :validate_user_permissions, except: [:org_init]
 
   private
 
+  # Migrated from Secured concern
   def authenticate_request!
-    payload, header = auth_token
-    header
+    payload, header = JsonWebToken.verify(http_token)
+    header if false # Commeent this line
     @requested_user = {
       email: payload['https://sassbox.com/email'],
       first_name: payload['https://sassbox.com/first_name'],
@@ -30,10 +32,44 @@ ActionController::API.class_eval do
     request.headers['Authorization'].split(' ').last if request.headers['Authorization'].present?
   end
 
-  def auth_token
-    JsonWebToken.verify(http_token)
+  # Migrated from OrgService concern
+  def set_org
+    @org_id = request.headers["X-WWW-ORG-ID"]
   end
 
+  def validate_user_permissions
+    permissions = get_current_user_permissions
+    if permissions["status"] && permissions["status"] != 200
+      render json: permissions
+    end
+  end
+
+  def get_current_user_permissions
+    path = "orgs/#{@org_id}/validate_user"
+    OrgServiceClient.request(path: path, query_hash: { email: @requested_user[:email] })
+  end
+
+
+
+  class OrgServiceClient
+    def self.request(path:, query_hash:)
+      conn = Faraday.new do |c|
+        c.use OpenCensus::Trace::Integrations::FaradayMiddleware
+        c.adapter Faraday.default_adapter
+      end
+
+      query_hash[:app_name] = PHOENIX_APP_NAME
+      response = conn.get "#{ENV['ORG_SERVICE_BASE_API']}/#{path}?#{query_hash.to_query}"
+
+      if response.status == 200
+        JSON.parse(response.body)
+      elsif response.status === 403
+        { status: 403, message: "User doesn't have enough access!" }
+      else
+        nil
+      end
+    end
+  end
 
   class JsonWebToken
     def self.verify(token)
@@ -50,8 +86,15 @@ ActionController::API.class_eval do
     end
 
     def self.jwks_hash
-      jwks_raw = Net::HTTP.get URI('https://bc-org-chart.auth0.com/.well-known/jwks.json')
-      jwks_keys = Array(JSON.parse(jwks_raw)['keys'])
+
+      # Faraday and OpenCensus middleware will be made available by the encompassing Rails App 
+      conn = Faraday.new do |c|
+        c.use OpenCensus::Trace::Integrations::FaradayMiddleware
+        c.adapter Faraday.default_adapter
+      end
+      response = conn.get "https://bc-org-chart.auth0.com/.well-known/jwks.json"
+
+      jwks_keys = Array(JSON.parse(response.body)['keys'])
       Hash[
         jwks_keys
         .map do |k|
