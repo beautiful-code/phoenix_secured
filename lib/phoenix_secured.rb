@@ -69,7 +69,25 @@ ActionController::API.class_eval do
         nil
       end
     end
+
+    def self.post_request(path:, body_hash:)
+      conn = Faraday.new do |c|
+        c.use OpenCensus::Trace::Integrations::FaradayMiddleware
+        c.adapter Faraday.default_adapter
+      end
+
+      body_hash[:app_name] = PHOENIX_APP_NAME
+      response = conn.post "#{ENV['ORG_SERVICE_BASE_API']}/#{path}?#{body_hash.to_query}"
+
+      if response.status == 200
+        JSON.parse(response.body)
+      else
+        {status: response.status}
+      end
+    end
   end
+
+
 
   class JsonWebToken
     def self.verify(token)
