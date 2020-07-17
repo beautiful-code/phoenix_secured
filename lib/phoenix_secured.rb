@@ -41,6 +41,8 @@ ActionController::API.class_eval do
     permissions = get_current_user_permissions
     if permissions["status"] && permissions["status"] != 200
       render json: permissions
+    else
+      @requested_user[:role] = permissions["role"]
     end
   end
 
@@ -105,7 +107,7 @@ ActionController::API.class_eval do
 
     def self.jwks_hash
 
-      # Faraday and OpenCensus middleware will be made available by the encompassing Rails App 
+      # Faraday and OpenCensus middleware will be made available by the encompassing Rails App
       conn = Faraday.new do |c|
         c.use OpenCensus::Trace::Integrations::FaradayMiddleware
         c.adapter Faraday.default_adapter
