@@ -24,6 +24,10 @@ Or install it yourself as:
 
 TODO: Write usage instructions here
 
+Add Env variable with key GROUP_BASE_SERVICE_BASE_API
+In your application add PHOENIX_APP_ID in config/application.rb
+contact AK / Ritesh to get the above values
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
