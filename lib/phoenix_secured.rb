@@ -11,7 +11,7 @@ require 'jwt'
 ActionController::API.class_eval do
 
   before_action :authenticate_request!
-  before_action :set_org, :validate_user_permissions, except: [:create_group]
+  before_action :set_group_id, :validate_user_permissions, except: [:create_group]
 
   private
 
@@ -33,21 +33,21 @@ ActionController::API.class_eval do
   end
 
   # GroupBaseService concern (formerly known as OrgService)
-  def set_org
+  def set_group_id
     @group_id = request.headers["X-WWW-GROUP-ID"]
   end
 
   def validate_user_permissions
     permissions = get_current_user_permissions
-    if permissions.status != 200
+    if permissions[:status] != 200
       render json: permissions
     else
-      @requested_user[:role] = permissions["role"]
+      @requested_user[:role] = permissions[:body]["role"]
     end
   end
 
   def get_current_user_permissions
-    path = "apps/#{PHOENIX_APP_ID}/groups/#{@group_id}/validate_user"
+    path = "/groups/#{@group_id}/validate_user"
     GroupBaseServiceClient.request(path: path, query_hash: { user_email: @requested_user[:email] })
   end
 
