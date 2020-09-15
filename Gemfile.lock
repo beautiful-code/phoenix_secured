@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    phoenix_secured (0.2.0)
+    phoenix_secured (0.3.0)
       faraday
       jwt
 
@@ -11,7 +11,7 @@ GEM
     diff-lcs (1.4.4)
     faraday (1.0.1)
       multipart-post (>= 1.2, < 3)
-    jwt (2.2.1)
+    jwt (2.2.2)
     multipart-post (2.1.1)
     rake (12.3.3)
     rspec (3.9.0)
@@ -37,4 +37,4 @@ DEPENDENCIES
   rspec (~> 3.0)
 
 BUNDLED WITH
-   2.1.2
+   2.1.4

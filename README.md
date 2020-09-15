@@ -24,9 +24,13 @@ Or install it yourself as:
 
 TODO: Write usage instructions here
 
+Add Env variable with key FIREBASE_PROJECT_ID
 Add Env variable with key GROUP_BASE_SERVICE_BASE_API
+Add Env variable with key USER_INFO_SERVICE_BASE_API
 In your application add PHOENIX_APP_ID in config/application.rb
 contact AK / Ritesh to get the above values
+
+set config.cache_store in config/environments/*.rb
 
 ## Development
 
