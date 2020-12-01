@@ -120,13 +120,13 @@ ActionController::API.class_eval do
       decoded_token = verifier.decode(id_token)
 
       payload = decoded_token[0]
-      if Time.now.to_i - 60 <= payload["auth_time"] && payload["name"]
+      if Time.now.to_i - 60 <= payload["auth_time"]
         UserInfoServiceClient.post_request(path: "user_info/details", body_hash: {
             user_info: {
               user_id: payload["email"],
-              first_name: payload["name"],
+              first_name: payload["name"] || "",
               last_name: "",
-              profile_pic_url: payload["picture"]
+              profile_pic_url: payload["picture"] || ""
             }
           }
         )
