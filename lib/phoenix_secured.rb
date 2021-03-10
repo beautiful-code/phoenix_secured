@@ -154,7 +154,7 @@ ActionController::API.class_eval do
   def validate_user_permissions
     permissions = get_current_user_permissions
     if permissions[:status] != 200
-      render json: permissions
+      render json: permissions, status: 403
     else
       @requested_user[:role] = permissions[:body]["role"]
     end
