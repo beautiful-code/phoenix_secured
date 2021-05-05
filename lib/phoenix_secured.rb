@@ -165,19 +165,23 @@ ActionController::API.class_eval do
     GroupBaseServiceClient.request(path: path, query_hash: { user_email: @requested_user[:email] })
   end
 
-  class GroupBaseServiceClient
+  class ServiceClient
+    def self.app_base_api
+      ""
+    end
+
     def self.request(path:, query_hash:)
-      response = self.conn.get "#{ENV["GROUP_BASE_SERVICE_BASE_API"]}/#{PHOENIX_APP_ID}/#{path}?#{query_hash.to_query}"
+      response = self.conn.get "#{self.app_base_api}/#{path}?#{query_hash.to_query}"
       { body: JSON.parse(response.body), status: response.status }
     end
 
     def self.post_request(path:, body_hash:)
-      response = self.conn.post "#{ENV["GROUP_BASE_SERVICE_BASE_API"]}/#{PHOENIX_APP_ID}/#{path}?#{body_hash.to_query}"
+      response = self.conn.post "#{self.app_base_api}/#{path}?#{body_hash.to_query}"
       { body: JSON.parse(response.body), status: response.status }
     end
 
     def self.put_request(path:, body_hash:)
-      response = self.conn.put "#{ENV["GROUP_BASE_SERVICE_BASE_API"]}/#{PHOENIX_APP_ID}/#{path}?#{body_hash.to_query}"
+      response = self.conn.put "#{self.app_base_api}/#{path}?#{body_hash.to_query}"
       { body: JSON.parse(response.body), status: response.status }
     end
 
@@ -185,30 +189,20 @@ ActionController::API.class_eval do
 
     def self.conn
       Faraday.new do |c|
-        c.use OpenCensus::Trace::Integrations::FaradayMiddleware
         c.adapter Faraday.default_adapter
       end
     end
   end
 
-  class UserInfoServiceClient
-    def self.request(path:, query_hash:)
-      response = self.conn.get "#{ENV["USER_INFO_SERVICE_BASE_API"]}/#{path}?#{query_hash.to_query}"
-      { body: JSON.parse(response.body), status: response.status }
+  class GroupBaseServiceClient < ServiceClient
+    def self.app_base_api
+      "#{ENV["GROUP_BASE_SERVICE_BASE_API"]}/#{PHOENIX_APP_ID}"
     end
+  end
 
-    def self.post_request(path:, body_hash:)
-      response = self.conn.post "#{ENV["USER_INFO_SERVICE_BASE_API"]}/#{path}?#{body_hash.to_query}"
-      { body: response.body, status: response.status }
-    end
-
-    private
-
-    def self.conn
-      Faraday.new do |c|
-        c.use OpenCensus::Trace::Integrations::FaradayMiddleware
-        c.adapter Faraday.default_adapter
-      end
+  class UserInfoServiceClient < ServiceClient
+    def self.app_base_api
+      ENV["USER_INFO_SERVICE_BASE_API"]
     end
   end
 end
