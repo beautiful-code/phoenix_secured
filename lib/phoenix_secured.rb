@@ -176,12 +176,12 @@ ActionController::API.class_eval do
     end
 
     def self.post_request(path:, body_hash:)
-      response = self.conn.post "#{self.app_base_api}/#{path}?#{body_hash.to_query}"
+      response = self.conn.public_send(:post, "#{self.app_base_api}/#{path}", body_hash.to_json, {'Content-Type'=>'application/json'})
       { body: JSON.parse(response.body), status: response.status }
     end
 
     def self.put_request(path:, body_hash:)
-      response = self.conn.put "#{self.app_base_api}/#{path}?#{body_hash.to_query}"
+      response = self.conn.public_send(:put, "#{self.app_base_api}/#{path}", body_hash.to_json, {'Content-Type'=>'application/json'})
       { body: JSON.parse(response.body), status: response.status }
     end
 
