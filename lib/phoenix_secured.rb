@@ -110,7 +110,8 @@ end
 # Spanning all controller action calls
 ActionController::API.class_eval do
   before_action :authenticate_request!
-  before_action :set_group_id, :validate_user_permissions, except: [:app_init, :create_group]
+  before_action :set_group_id, except: [:app_init, :create_group]
+
 
   private
 
@@ -137,24 +138,11 @@ ActionController::API.class_eval do
     request.headers["Authorization"].split(" ").last if request.headers["Authorization"].present?
   end
 
-  # GroupBaseService concern (formerly known as OrgService)
+  # App Group / GroupBaseService concern
   def set_group_id
     @group_id = request.headers["X-WWW-GROUP-ID"]
   end
 
-  def validate_user_permissions
-    permissions = get_current_user_permissions
-    if permissions[:status] != 200
-      render json: permissions, status: 403
-    else
-      @requested_user[:role] = permissions[:body]["role"]
-    end
-  end
-
-  def get_current_user_permissions
-    path = "/groups/#{@group_id}/validate_user"
-    GroupBaseServiceClient.request(path: path, query_hash: { user_email: @requested_user[:email] })
-  end
 
   class ServiceClient
     def self.app_base_api
@@ -185,12 +173,32 @@ ActionController::API.class_eval do
     end
   end
 
+
+  ## Depricated from (v0.4.0)
+  # GroupBaseService concern (For future usage will recomend introducing a flag GroupBaseEnabled)
+  def validate_user_permissions
+    permissions = get_current_user_permissions
+    if permissions[:status] != 200
+      render json: permissions, status: 403
+    else
+      @requested_user[:role] = permissions[:body]["role"]
+    end
+  end
+
+  ## Depricated from (v0.4.0)
+  def get_current_user_permissions
+    path = "/groups/#{@group_id}/validate_user"
+    GroupBaseServiceClient.request(path: path, query_hash: { user_email: @requested_user[:email] })
+  end
+
+  ## Depricated from (v0.4.0)
   class GroupBaseServiceClient < ServiceClient
     def self.app_base_api
       "#{ENV["GROUP_BASE_SERVICE_BASE_API"]}/#{PHOENIX_APP_ID}"
     end
   end
 
+  ## Depricated from (v0.4.0)
   class UserInfoServiceClient < ServiceClient
     def self.app_base_api
       ENV["USER_INFO_SERVICE_BASE_API"]
