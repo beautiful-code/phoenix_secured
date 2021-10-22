@@ -117,18 +117,25 @@ ActionController::API.class_eval do
 
   def authenticate_request!
     begin
-      verifier = FirebaseIDTokenVerifier.new(ENV["FIREBASE_PROJECT_ID"])
-      decoded_token = verifier.decode(id_token)
+      unless ENV["DEV_AUTH_USER"].present?
+        verifier = FirebaseIDTokenVerifier.new(ENV["FIREBASE_PROJECT_ID"])
+        decoded_token = verifier.decode(id_token)
 
-      payload = decoded_token[0]
+        payload = decoded_token[0]
 
-      @requested_user = {
-        email: payload["email"],
-        name: payload["name"],
-        picture: payload["picture"],
-        uid: payload["sub"],
-        auth_time: payload["auth_time"]
-      }
+        @requested_user = {
+          email: payload["email"],
+          name: payload["name"],
+          picture: payload["picture"],
+          uid: payload["sub"],
+          auth_time: payload["auth_time"]
+        }
+      else
+        @requested_user = {
+          email: ENV["DEV_AUTH_USER"],
+          auth_time: DateTime.now.to_i
+        }
+      end
     rescue Exception => e
       render json: { message: e }, status: :unauthorized
     end
