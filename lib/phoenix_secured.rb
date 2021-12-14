@@ -109,7 +109,7 @@ end
 
 # Spanning all controller action calls
 ActionController::API.class_eval do
-  before_action :authenticate_request!
+  before_action :authenticate_request!, except: [:get_fb_custom_token]
   before_action :set_group_id, except: [:app_init, :create_group, :get_fb_custom_token]
 
 
